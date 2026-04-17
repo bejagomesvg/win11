@@ -155,6 +155,7 @@ export function DesktopWindow({ window, active, dimmed }: DesktopWindowProps) {
   return (
     <section
       data-window-shell="true"
+      data-active={active ? 'true' : 'false'}
       style={{
         zIndex: active ? 1300 + window.zIndex : 1200 + window.zIndex,
         top: `${window.y}px`,
@@ -170,41 +171,46 @@ export function DesktopWindow({ window, active, dimmed }: DesktopWindowProps) {
             : 'rgba(219, 234, 254, 0.6)',
         boxShadow: active
           ? settings.theme === 'dark'
-            ? '0 40px 120px rgba(2, 6, 23, 0.65)'
-            : '0 40px 120px rgba(30, 58, 138, 0.35)'
+            ? 'none'
+            : 'none'
           : 'none',
+        borderColor: active
+          ? 'rgb(var(--color-glow))'
+          : settings.theme === 'dark'
+            ? 'rgba(255, 255, 255, 0.1)'
+            : 'rgba(148, 163, 184, 0.35)',
+        borderWidth: active ? '2px' : '1px',
         display: 'flex',
         flexDirection: 'column',
       }}
       onMouseDown={() => focusWindow(window.id)}
       className={clsx(
-        'absolute animate-popIn rounded-[28px] border backdrop-blur-2xl transition overflow-hidden',
-        settings.theme === 'dark' ? 'border-white/10' : 'border-slate-300/30',
+        'window-shell radius-panel absolute animate-popIn border backdrop-blur-2xl transition overflow-hidden',
         dimmed ? 'scale-[0.985] blur-[1px] opacity-25 saturate-50' : '',
       )}
     >
       <div
         onMouseDown={handleDragStart}
         className={clsx(
-          'flex cursor-grab items-center justify-between border-b px-5 py-4 active:cursor-grabbing flex-shrink-0',
+          'flex cursor-grab items-center justify-between border-b px-4 py-3 active:cursor-grabbing flex-shrink-0',
           settings.theme === 'dark'
             ? 'border-white/10 bg-black/20'
-            : 'border-slate-300/30 bg-white/20'
+            : 'border-slate-300/50 bg-white/20'
         )}
       >
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <GripHorizontal className={clsx(
-              'h-4 w-4',
+              'h-3.5 w-3.5',
               settings.theme === 'dark' ? 'text-slate-400' : 'text-slate-500'
             )} />
             <h2 className={clsx(
-              'font-display text-lg font-semibold',
+              'font-display text-base font-semibold leading-none',
               settings.theme === 'dark' ? 'text-white' : 'text-slate-900'
             )}>{window.title}</h2>
           </div>
           <p className={clsx(
-            'text-xs uppercase tracking-[0.24em]',
+            'mt-1 text-[10px] uppercase tracking-[0.22em]',
             settings.theme === 'dark' ? 'text-slate-400' : 'text-slate-600'
           )}>Web desktop app</p>
         </div>
@@ -213,25 +219,25 @@ export function DesktopWindow({ window, active, dimmed }: DesktopWindowProps) {
             type="button"
             onClick={() => minimizeWindow(window.id)}
             className={clsx(
-              'rounded-full border p-2 transition',
+              'rounded-full border p-1.5 transition',
               settings.theme === 'dark'
                 ? 'border-white/10 bg-white/5 text-slate-200 hover:bg-white/10'
-                : 'border-slate-300/50 bg-slate-100/40 text-slate-700 hover:bg-slate-100/60'
+                : 'border-slate-300/70 bg-slate-100/40 text-slate-700 hover:bg-slate-100/60'
             )}
           >
-            <Minus className="h-4 w-4" />
+            <Minus className="h-3.5 w-3.5" />
           </button>
           <button
             type="button"
             onClick={() => closeWindow(window.id)}
-            className="rounded-full border p-2 transition"
-            style={{
-              borderColor: 'rgba(var(--color-primary), 0.25)',
-              backgroundColor: 'rgba(var(--color-primary), 0.18)',
-              color: settings.theme === 'dark' ? 'white' : 'rgba(var(--color-primary), 1)',
-            }}
+            className={clsx(
+              'rounded-full border p-1.5 transition',
+              settings.theme === 'dark'
+                ? 'border-white/10 bg-white/5 text-slate-200 hover:bg-white/10'
+                : 'border-slate-300/70 bg-slate-100/40 text-slate-700 hover:bg-slate-100/60'
+            )}
           >
-            <X className="h-4 w-4" />
+            <X className="h-3.5 w-3.5" />
           </button>
         </div>
       </div>
@@ -259,8 +265,20 @@ export function DesktopWindow({ window, active, dimmed }: DesktopWindowProps) {
         type="button"
         aria-label="Redimensionar janela"
         onMouseDown={handleResizeStart}
-        className="absolute bottom-1 right-1 h-5 w-5 cursor-se-resize rounded-full bg-white/5 text-transparent transition hover:bg-white/10"
-      />
+        className={clsx(
+          'absolute bottom-1 right-1 flex h-4 w-4 cursor-se-resize items-end justify-end bg-transparent p-0.5 transition',
+          settings.theme === 'dark' ? 'hover:bg-white/5' : 'hover:bg-slate-900/5',
+        )}
+      >
+        <span
+          className={clsx(
+            'block h-2.5 w-2.5 rounded-tl-sm border-b-2 border-r-2 transition-opacity',
+            settings.theme === 'dark'
+              ? 'border-white/30 opacity-70 hover:border-white/55'
+              : 'border-slate-500/45 opacity-80 hover:border-slate-700/70',
+          )}
+        />
+      </button>
     </section>
   );
 }

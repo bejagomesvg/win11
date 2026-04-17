@@ -1,6 +1,12 @@
-import clsx from 'clsx';
+import type { CSSProperties } from 'react';
+import { Check } from 'lucide-react';
 import { useDesktopStore } from '@/store/desktopStore';
 import type { ColorTheme, DockPosition, ThemeMode } from '@/types';
+import { cn } from '@/lib/utils';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
+import { Switch } from '@/components/ui/switch';
 
 const themeOptions: ThemeMode[] = ['light', 'dark'];
 const dockOptions: DockPosition[] = ['left', 'right', 'top', 'bottom'];
@@ -17,51 +23,77 @@ const colorThemeOptions: Array<{ value: ColorTheme; swatch: string; label: strin
   { value: 'pink', swatch: '#ec4899', label: 'Pink' },
 ];
 
-function ToggleRow({
+function SettingSection({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Card className="radius-panel border-border/70 bg-card/65 backdrop-blur-2xl">
+      <CardHeader className="pb-4">
+        <CardTitle className="font-display text-xl">{title}</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">{children}</CardContent>
+    </Card>
+  );
+}
+
+function SettingRow({
   title,
   description,
-  checked,
-  onChange,
-  darkMode,
+  control,
 }: {
   title: string;
   description: string;
-  checked: boolean;
-  onChange: (checked: boolean) => void;
-  darkMode: boolean;
+  control: React.ReactNode;
 }) {
   return (
-    <div
-      className={clsx(
-        'flex items-center justify-between rounded-2xl border px-4 py-3',
-        darkMode ? 'border-white/10 bg-slate-950/35' : 'border-slate-300/70 bg-white/70',
-      )}
-    >
-      <div>
-        <p className={clsx('text-sm font-semibold', darkMode ? 'text-white' : 'text-slate-900')}>
-          {title}
-        </p>
-        <p className={clsx('mt-1 text-xs', darkMode ? 'text-slate-400' : 'text-slate-600')}>
-          {description}
-        </p>
+    <div className="radius-card flex items-center justify-between gap-4 border border-border/70 bg-background/50 px-4 py-3">
+      <div className="space-y-1">
+        <p className="text-sm font-semibold text-foreground">{title}</p>
+        <p className="text-xs text-muted-foreground">{description}</p>
       </div>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        onClick={() => onChange(!checked)}
-        className={clsx(
-          'relative h-7 w-12 rounded-full transition',
-          checked ? '' : darkMode ? 'bg-white/15' : 'bg-slate-300',
-        )}
-        style={checked ? { backgroundColor: 'rgb(var(--color-primary))' } : undefined}
-      >
-        <span
-          className={`absolute top-1 h-5 w-5 rounded-full bg-white transition ${
-            checked ? 'left-6' : 'left-1'
-          }`}
-        />
-      </button>
+      {control}
+    </div>
+  );
+}
+
+function SettingSlider({
+  title,
+  description,
+  value,
+  min,
+  max,
+  step,
+  onValueChange,
+}: {
+  title: string;
+  description: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  onValueChange: (value: number) => void;
+}) {
+  return (
+    <div className="radius-card border border-border/70 bg-background/50 px-4 py-3">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold text-foreground">{title}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{description}</p>
+        </div>
+        <span className="w-10 text-right text-sm font-semibold text-foreground">{value}</span>
+      </div>
+      <Slider
+        className="mt-4"
+        min={min}
+        max={max}
+        step={step}
+        value={[value]}
+        onValueChange={(values) => onValueChange(values[0] ?? value)}
+      />
     </div>
   );
 }
@@ -69,66 +101,54 @@ function ToggleRow({
 export function SettingsPanel() {
   const settings = useDesktopStore((state) => state.settings);
   const updateSettings = useDesktopStore((state) => state.updateSettings);
-  const darkMode = settings.theme === 'dark';
 
   return (
     <div className="space-y-6 pb-10">
-      <section
-        className={clsx(
-          'rounded-3xl border p-5 transition-colors',
-          darkMode ? 'border-white/10 bg-white/5' : 'border-slate-300/70 bg-white/75',
-        )}
-      >
-        <h3 className={clsx('font-display text-xl font-semibold', darkMode ? 'text-white' : 'text-slate-900')}>
-          Themes
-        </h3>
-        <div className="mt-4 grid gap-3 md:grid-cols-2">
-          {themeOptions.map((theme) => (
-            <button
-              key={theme}
-              type="button"
-              onClick={() => void updateSettings({ theme })}
-              className={clsx('rounded-2xl border p-3 text-left transition', theme === settings.theme
-                ? darkMode ? 'bg-white/10' : 'bg-slate-100'
-                : darkMode ? 'border-white/10 bg-slate-950/30 hover:bg-white/10' : 'border-slate-300/70 bg-white/70 hover:bg-white')}
-              style={
-                theme === settings.theme
-                  ? {
-                      borderColor: 'rgb(var(--color-primary))',
-                      boxShadow: '0 0 0 1px rgba(var(--color-primary), 0.35)',
-                    }
-                  : undefined
-              }
-            >
-              <div
-                className={clsx(
-                  'relative h-24 overflow-hidden rounded-xl border border-white/10',
-                  theme === 'light'
-                    ? 'bg-[linear-gradient(180deg,#8ec5ff,#2f8fff)]'
-                    : 'bg-[linear-gradient(180deg,#77bbff,#1b7df2)]',
+      <SettingSection title="Themes">
+        <div className="grid gap-3 md:grid-cols-2">
+          {themeOptions.map((theme) => {
+            const selected = theme === settings.theme;
+
+            return (
+              <button
+                key={theme}
+                type="button"
+                onClick={() => void updateSettings({ theme })}
+                className={cn(
+                  'radius-card border p-3 text-left transition hover:-translate-y-0.5',
+                  selected
+                    ? 'border-primary/70 bg-primary/10 shadow-[0_0_0_1px_rgba(var(--color-primary),0.22)]'
+                    : 'border-border/70 bg-background/50 hover:bg-accent/70',
                 )}
               >
-                <div className={clsx(
-                  'absolute left-6 top-7 h-10 w-14 rounded-md shadow-lg',
-                  theme === 'light' ? 'bg-white' : 'bg-slate-900',
-                )} />
-                <div className="absolute left-11 top-3 h-10 w-16 rounded-md bg-black/45" />
-              </div>
-              <p className={clsx('mt-3 text-center text-sm font-semibold', darkMode ? 'text-white' : 'text-slate-900')}>
-                {theme === 'light' ? 'Light' : 'Dark'}
-              </p>
-            </button>
-          ))}
+                <div
+                  className={cn(
+                    'radius-block relative h-24 overflow-hidden border border-white/10',
+                    theme === 'light'
+                      ? 'bg-[linear-gradient(180deg,#8ec5ff,#2f8fff)]'
+                      : 'bg-[linear-gradient(180deg,#77bbff,#1b7df2)]',
+                  )}
+                >
+                  <div
+                    className={cn(
+                      'radius-control absolute left-6 top-7 h-10 w-14 shadow-lg',
+                      theme === 'light' ? 'bg-white' : 'bg-slate-900',
+                    )}
+                  />
+                  <div className="radius-control absolute left-11 top-3 h-10 w-16 bg-black/45" />
+                </div>
+                <div className="mt-3 flex items-center justify-between">
+                  <p className="text-sm font-semibold capitalize text-foreground">{theme}</p>
+                  {selected ? <Check className="h-4 w-4 text-primary" /> : null}
+                </div>
+              </button>
+            );
+          })}
         </div>
 
-        <div className={clsx('mt-4 rounded-2xl border px-4 py-3', darkMode ? 'border-white/10 bg-slate-950/35' : 'border-slate-300/70 bg-white/70')}>
-          <p className={clsx('text-sm font-semibold', darkMode ? 'text-white' : 'text-slate-900')}>Color</p>
-          <div
-            className={clsx(
-              'mt-1 flex flex-wrap items-center justify-center gap-2 px-1 pb-1 pt-0',
-              darkMode ? 'bg-transparent' : 'bg-transparent',
-            )}
-          >
+        <div className="radius-card border border-border/70 bg-background/50 px-4 py-3">
+          <p className="text-sm font-semibold text-foreground">Color</p>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
             {colorThemeOptions.map((option) => {
               const selected = settings.colorTheme === option.value;
               return (
@@ -138,168 +158,114 @@ export function SettingsPanel() {
                   aria-label={option.label}
                   title={option.label}
                   onClick={() => void updateSettings({ colorTheme: option.value })}
-                  className={clsx(
-                    'relative flex h-[1.625rem] w-[1.625rem] items-center justify-center rounded-full transition',
-                    selected
-                      ? 'shadow-[0_0_0_2px_var(--swatch-ring),0_0_6px_var(--swatch-ring)]'
-                      : 'hover:scale-105',
+                  className={cn(
+                    'relative flex h-8 w-8 items-center justify-center rounded-full transition hover:scale-105',
+                    selected && 'shadow-[0_0_0_2px_var(--swatch-ring),0_0_8px_var(--swatch-ring)]',
                   )}
                   style={
                     selected
                       ? ({
                           ['--swatch-ring' as string]: option.swatch,
-                        } as React.CSSProperties)
+                        } as CSSProperties)
                       : undefined
                   }
                 >
                   <span
-                    className={clsx(
-                      'block rounded-full transition',
-                      selected ? 'h-[1.125rem] w-[1.125rem] border' : 'h-[1.125rem] w-[1.125rem]',
-                    )}
-                    style={{
-                      backgroundColor: option.swatch,
-                      borderColor: selected ? option.swatch : undefined,
-                    }}
+                    className={cn('block h-5 w-5 rounded-full', selected && 'border border-white/80')}
+                    style={{ backgroundColor: option.swatch }}
                   />
                 </button>
               );
             })}
           </div>
         </div>
-      </section>
 
-      <section
-        className={clsx(
-          'rounded-3xl border p-5 transition-colors',
-          darkMode ? 'border-white/10 bg-white/5' : 'border-slate-300/70 bg-white/75',
-        )}
-      >
-        <h3 className={clsx('font-display text-xl font-semibold', darkMode ? 'text-white' : 'text-slate-900')}>
-          Dock
-        </h3>
-        <div className="mt-4 space-y-3">
-          <ToggleRow
-            title="Auto-hide the Dock"
-            description="A dock se esconde automaticamente quando nao esta em uso."
-            checked={settings.autoHide}
-            onChange={(checked) => void updateSettings({ autoHide: checked })}
-            darkMode={darkMode}
-          />
+        <SettingSlider
+          title="Interface corner radius"
+          description="Controla o arredondamento geral dos componentes da interface."
+          value={settings.interfaceRadius}
+          min={2}
+          max={25}
+          step={2}
+          onValueChange={(value) => void updateSettings({ interfaceRadius: value })}
+        />
+      </SettingSection>
 
-          <ToggleRow
-            title="Panel mode"
-            description="A dock fica com visual mais encostado na borda da tela."
-            checked={settings.panelMode}
-            onChange={(checked) => void updateSettings({ panelMode: checked })}
-            darkMode={darkMode}
-          />
-
-          <div className={clsx('rounded-2xl border px-4 py-3', darkMode ? 'border-white/10 bg-slate-950/35' : 'border-slate-300/70 bg-white/70')}>
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className={clsx('text-sm font-semibold', darkMode ? 'text-white' : 'text-slate-900')}>Icon size</p>
-                <p className={clsx('mt-1 text-xs', darkMode ? 'text-slate-400' : 'text-slate-600')}>
-                  Ajuste o tamanho dos icones da dock.
-                </p>
-              </div>
-              <span className={clsx('w-10 text-right text-sm font-semibold', darkMode ? 'text-slate-300' : 'text-slate-700')}>
-                {settings.iconSize}
-              </span>
-            </div>
-            <input
-              type="range"
-              min="24"
-              max="56"
-              step="2"
-              value={settings.iconSize}
-              onChange={(event) => void updateSettings({ iconSize: Number(event.target.value) })}
-              className="mt-4 w-full"
-              style={{ accentColor: 'rgb(var(--color-primary))' }}
+      <SettingSection title="Dock">
+        <SettingRow
+          title="Auto-hide the Dock"
+          description="A dock se esconde automaticamente quando nao esta em uso."
+          control={
+            <Switch
+              checked={settings.autoHide}
+              onCheckedChange={(checked) => void updateSettings({ autoHide: checked })}
             />
-          </div>
+          }
+        />
 
-          <div className={clsx('rounded-2xl border px-4 py-3', darkMode ? 'border-white/10 bg-slate-950/35' : 'border-slate-300/70 bg-white/70')}>
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className={clsx('text-sm font-semibold', darkMode ? 'text-white' : 'text-slate-900')}>Dock corner radius</p>
-                <p className={clsx('mt-1 text-xs', darkMode ? 'text-slate-400' : 'text-slate-600')}>
-                  Controle o quanto a dock fica arredondada.
-                </p>
-              </div>
-              <span className={clsx('w-10 text-right text-sm font-semibold', darkMode ? 'text-slate-300' : 'text-slate-700')}>
-                {settings.dockRadius}
-              </span>
-            </div>
-            <input
-              type="range"
-              min="8"
-              max="40"
-              step="2"
-              value={settings.dockRadius}
-              onChange={(event) => void updateSettings({ dockRadius: Number(event.target.value) })}
-              className="mt-4 w-full"
-              style={{ accentColor: 'rgb(var(--color-primary))' }}
+        <SettingRow
+          title="Panel mode"
+          description="A dock fica com visual mais encostado na borda da tela."
+          control={
+            <Switch
+              checked={settings.panelMode}
+              onCheckedChange={(checked) => void updateSettings({ panelMode: checked })}
             />
-          </div>
+          }
+        />
 
-          <div className={clsx('rounded-2xl border px-4 py-3', darkMode ? 'border-white/10 bg-slate-950/35' : 'border-slate-300/70 bg-white/70')}>
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className={clsx('text-sm font-semibold', darkMode ? 'text-white' : 'text-slate-900')}>Dock transparency</p>
-                <p className={clsx('mt-1 text-xs', darkMode ? 'text-slate-400' : 'text-slate-600')}>
-                  Ajuste a transparencia do fundo da dock.
-                </p>
-              </div>
-              <span className={clsx('w-10 text-right text-sm font-semibold', darkMode ? 'text-slate-300' : 'text-slate-700')}>
-                {settings.dockTransparency}
-              </span>
-            </div>
-            <input
-              type="range"
-              min="35"
-              max="100"
-              step="5"
-              value={settings.dockTransparency}
-              onChange={(event) =>
-                void updateSettings({ dockTransparency: Number(event.target.value) })
-              }
-              className="mt-4 w-full"
-              style={{ accentColor: 'rgb(var(--color-primary))' }}
-            />
-          </div>
+        <SettingSlider
+          title="Icon size"
+          description="Ajuste o tamanho dos icones da dock."
+          value={settings.iconSize}
+          min={24}
+          max={56}
+          step={2}
+          onValueChange={(value) => void updateSettings({ iconSize: value })}
+        />
 
-          <div className={clsx('rounded-2xl border px-4 py-3', darkMode ? 'border-white/10 bg-slate-950/35' : 'border-slate-300/70 bg-white/70')}>
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className={clsx('text-sm font-semibold', darkMode ? 'text-white' : 'text-slate-900')}>Position on screen</p>
-                <p className={clsx('mt-1 text-xs', darkMode ? 'text-slate-400' : 'text-slate-600')}>
-                  Escolha em qual borda a dock fica visivel.
-                </p>
-              </div>
-              <select
-                value={settings.dockPosition}
-                onChange={(event) =>
-                  void updateSettings({ dockPosition: event.target.value as DockPosition })
-                }
-                className={clsx(
-                  'rounded-xl border px-3 py-2 text-sm outline-none transition',
-                  darkMode
-                    ? 'border-white/10 bg-white/5 text-white'
-                    : 'border-slate-300 bg-white text-slate-900',
-                )}
-                style={{ borderColor: darkMode ? undefined : undefined }}
-              >
+        <SettingSlider
+          title="Dock corner radius"
+          description="Controle o quanto a dock fica arredondada."
+          value={settings.dockRadius}
+          min={0}
+          max={40}
+          step={2}
+          onValueChange={(value) => void updateSettings({ dockRadius: value })}
+        />
+
+        <SettingSlider
+          title="Dock transparency"
+          description="Ajuste a transparencia do fundo da dock."
+          value={settings.dockTransparency}
+          min={35}
+          max={100}
+          step={5}
+          onValueChange={(value) => void updateSettings({ dockTransparency: value })}
+        />
+
+        <SettingRow
+          title="Position on screen"
+          description="Escolha em qual borda a dock fica visivel."
+          control={
+            <Select
+              value={settings.dockPosition}
+              onValueChange={(value) => void updateSettings({ dockPosition: value as DockPosition })}
+            >
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="Selecione" />
+              </SelectTrigger>
+              <SelectContent>
                 {dockOptions.map((dockPosition) => (
-                  <option key={dockPosition} value={dockPosition} className="bg-slate-900">
+                  <SelectItem key={dockPosition} value={dockPosition}>
                     {dockPosition}
-                  </option>
+                  </SelectItem>
                 ))}
-              </select>
-            </div>
-          </div>
-        </div>
-      </section>
+              </SelectContent>
+            </Select>
+          }
+        />
+      </SettingSection>
     </div>
   );
 }

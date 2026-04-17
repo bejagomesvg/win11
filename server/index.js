@@ -43,15 +43,22 @@ function bootstrapDatabase() {
       user_id INTEGER PRIMARY KEY,
       theme TEXT NOT NULL DEFAULT 'dark',
       color_theme TEXT NOT NULL DEFAULT 'blue',
+      interface_radius INTEGER NOT NULL DEFAULT 5,
       dock_position TEXT NOT NULL DEFAULT 'bottom',
       auto_hide INTEGER NOT NULL DEFAULT 0,
       panel_mode INTEGER NOT NULL DEFAULT 0,
       icon_size INTEGER NOT NULL DEFAULT 34,
-      dock_radius INTEGER NOT NULL DEFAULT 30,
+      dock_radius INTEGER NOT NULL DEFAULT 0,
       dock_transparency INTEGER NOT NULL DEFAULT 92,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
   `);
+
+  try {
+    db.run("ALTER TABLE settings ADD COLUMN interface_radius INTEGER NOT NULL DEFAULT 5");
+  } catch {
+    // Column already exists for existing databases.
+  }
 
   try {
     db.run("ALTER TABLE settings ADD COLUMN color_theme TEXT NOT NULL DEFAULT 'blue'");
@@ -96,18 +103,18 @@ function bootstrapDatabase() {
     const newUser = db.exec("SELECT id FROM users WHERE username = 'demo'");
     const userId = Number(newUser[0].values[0][0]);
     const insertSettings = db.prepare(
-      'INSERT INTO settings (user_id, theme, color_theme, dock_position, auto_hide, panel_mode, icon_size, dock_radius, dock_transparency) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO settings (user_id, theme, color_theme, interface_radius, dock_position, auto_hide, panel_mode, icon_size, dock_radius, dock_transparency) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
     );
-    insertSettings.run([userId, 'dark', 'blue', 'bottom', 0, 0, 34, 30, 92]);
+    insertSettings.run([userId, 'dark', 'blue', 5, 'bottom', 0, 0, 34, 0, 92]);
     insertSettings.free();
     saveDatabase();
     return;
   }
 
   const settingsInsert = db.prepare(
-    'INSERT OR IGNORE INTO settings (user_id, theme, color_theme, dock_position, auto_hide, panel_mode, icon_size, dock_radius, dock_transparency) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    'INSERT OR IGNORE INTO settings (user_id, theme, color_theme, interface_radius, dock_position, auto_hide, panel_mode, icon_size, dock_radius, dock_transparency) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
   );
-  settingsInsert.run([Number(exists.id), 'dark', 'blue', 'bottom', 0, 0, 34, 30, 92]);
+  settingsInsert.run([Number(exists.id), 'dark', 'blue', 5, 'bottom', 0, 0, 34, 0, 92]);
   settingsInsert.free();
   saveDatabase();
 }
@@ -168,7 +175,7 @@ function getUserByUsername(username) {
 
 function getSettingsByUserId(userId) {
   const stmt = db.prepare(
-    'SELECT theme, color_theme, dock_position, auto_hide, panel_mode, icon_size, dock_radius, dock_transparency FROM settings WHERE user_id = ?',
+    'SELECT theme, color_theme, interface_radius, dock_position, auto_hide, panel_mode, icon_size, dock_radius, dock_transparency FROM settings WHERE user_id = ?',
   );
   stmt.bind([userId]);
 
@@ -177,11 +184,12 @@ function getSettingsByUserId(userId) {
     return {
       theme: 'dark',
       colorTheme: 'blue',
+      interfaceRadius: 5,
       dockPosition: 'bottom',
       autoHide: false,
       panelMode: false,
       iconSize: 34,
-      dockRadius: 30,
+      dockRadius: 0,
       dockTransparency: 92,
     };
   }
@@ -192,11 +200,12 @@ function getSettingsByUserId(userId) {
   return {
     theme: String(row.theme || 'dark'),
     colorTheme: String(row.color_theme || 'blue'),
+    interfaceRadius: Number(row.interface_radius ?? 5),
     dockPosition: String(row.dock_position || 'bottom'),
     autoHide: Number(row.auto_hide || 0) === 1,
     panelMode: Number(row.panel_mode || 0) === 1,
     iconSize: Number(row.icon_size || 34),
-    dockRadius: Number(row.dock_radius || 30),
+    dockRadius: Number(row.dock_radius ?? 0),
     dockTransparency: Number(row.dock_transparency || 92),
   };
 }
@@ -259,6 +268,10 @@ app.post('/api/settings', requireAuth, (req, res) => {
 
   const theme = allowedThemes.includes(req.body.theme) ? req.body.theme : 'dark';
   const colorTheme = allowedColorThemes.includes(req.body.colorTheme) ? req.body.colorTheme : 'blue';
+  const requestedInterfaceRadius = Number(req.body.interfaceRadius ?? 5);
+  const interfaceRadius = Number.isFinite(requestedInterfaceRadius)
+    ? Math.min(25, Math.max(2, Math.round(requestedInterfaceRadius)))
+    : 5;
   const dockPosition = allowedPositions.includes(req.body.dockPosition)
     ? req.body.dockPosition
     : 'bottom';
@@ -268,21 +281,22 @@ app.post('/api/settings', requireAuth, (req, res) => {
   const iconSize = Number.isFinite(requestedIconSize)
     ? Math.min(56, Math.max(24, Math.round(requestedIconSize)))
     : 34;
-  const requestedDockRadius = Number(req.body.dockRadius ?? 30);
+  const requestedDockRadius = Number(req.body.dockRadius ?? 0);
   const dockRadius = Number.isFinite(requestedDockRadius)
-    ? Math.min(40, Math.max(8, Math.round(requestedDockRadius)))
-    : 30;
+    ? Math.min(40, Math.max(0, Math.round(requestedDockRadius)))
+    : 0;
   const requestedDockTransparency = Number(req.body.dockTransparency ?? 92);
   const dockTransparency = Number.isFinite(requestedDockTransparency)
     ? Math.min(100, Math.max(35, Math.round(requestedDockTransparency)))
     : 92;
 
   const stmt = db.prepare(`
-    INSERT INTO settings (user_id, theme, color_theme, dock_position, auto_hide, panel_mode, icon_size, dock_radius, dock_transparency)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO settings (user_id, theme, color_theme, interface_radius, dock_position, auto_hide, panel_mode, icon_size, dock_radius, dock_transparency)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(user_id) DO UPDATE SET
       theme = excluded.theme,
       color_theme = excluded.color_theme,
+      interface_radius = excluded.interface_radius,
       dock_position = excluded.dock_position,
       auto_hide = excluded.auto_hide,
       panel_mode = excluded.panel_mode,
@@ -295,6 +309,7 @@ app.post('/api/settings', requireAuth, (req, res) => {
     req.session.user.id,
     theme,
     colorTheme,
+    interfaceRadius,
     dockPosition,
     autoHide,
     panelMode,
@@ -310,6 +325,7 @@ app.post('/api/settings', requireAuth, (req, res) => {
     settings: {
       theme,
       colorTheme,
+      interfaceRadius,
       dockPosition,
       autoHide: autoHide === 1,
       panelMode: panelMode === 1,

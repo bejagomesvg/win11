@@ -21,6 +21,7 @@ export interface User {
 export interface Settings {
   theme: ThemeMode;
   colorTheme: ColorTheme;
+  interfaceRadius: number;
   dockPosition: DockPosition;
   autoHide: boolean;
   panelMode: boolean;

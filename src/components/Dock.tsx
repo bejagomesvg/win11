@@ -40,7 +40,8 @@ export function Dock() {
   );
   const buttonSize = Math.max(40, settings.iconSize + 14);
   const glyphSize = Math.max(18, Math.round(settings.iconSize * 0.68));
-  const dockAlpha = Math.max(0.35, Math.min(1, settings.dockTransparency / 100));
+  const dockFillAlpha = Math.max(0.04, Math.min(0.78, 0.95 - settings.dockTransparency / 100));
+  const dockBlur = Math.max(6, Math.round(28 - settings.dockTransparency / 5));
   const panelMode = settings.panelMode;
   const panelButtonSize = Math.max(20, settings.iconSize - 8);
   const effectiveButtonSize = panelMode ? panelButtonSize : buttonSize;
@@ -85,9 +86,11 @@ export function Dock() {
           ? 'translate-y-[calc(-100%+6px)] opacity-95 hover:translate-y-0'
           : 'translate-y-[calc(100%-6px)] opacity-95 hover:translate-y-0';
 
+  const topAlpha = Math.max(0.02, dockFillAlpha - (panelMode ? 0.08 : 0.05));
+  const bottomAlpha = Math.max(0.05, dockFillAlpha);
   const dockBackground = isDark
-    ? `linear-gradient(180deg, rgba(34, 15, 24, ${Math.max(0.68, dockAlpha - 0.04)}), rgba(16, 10, 18, ${Math.max(0.8, dockAlpha)}))`
-    : `linear-gradient(180deg, rgba(203, 213, 225, ${Math.max(0.7, dockAlpha - 0.02)}), rgba(226, 232, 240, ${Math.max(0.85, dockAlpha)}))`;
+    ? `linear-gradient(180deg, rgba(15, 23, 42, ${topAlpha}), rgba(2, 6, 23, ${bottomAlpha}))`
+    : `linear-gradient(180deg, rgba(255, 255, 255, ${topAlpha}), rgba(226, 232, 240, ${bottomAlpha}))`;
 
   return (
     <div
@@ -104,7 +107,7 @@ export function Dock() {
     >
       <aside
         className={clsx(
-          'backdrop-blur-2xl transition duration-300',
+          'transition duration-300',
           panelMode
             ? lateral
               ? 'flex h-full flex-col items-center gap-0.5 px-1 py-1.5'
@@ -115,16 +118,20 @@ export function Dock() {
           settings.autoHide ? (panelMode ? panelAutoHideClasses : autoHideClasses) : 'opacity-100',
         )}
         style={{
-          borderRadius: `${panelMode ? Math.max(5, settings.dockRadius - 24) : Math.max(18, settings.dockRadius - 6)}px`,
+          backdropFilter: `blur(${dockBlur}px) saturate(${Math.max(105, 145 - settings.dockTransparency / 2)}%)`,
+          WebkitBackdropFilter: `blur(${dockBlur}px) saturate(${Math.max(105, 145 - settings.dockTransparency / 2)}%)`,
+          borderRadius: `${panelMode ? Math.max(0, settings.dockRadius - 24) : Math.max(0, settings.dockRadius)}px`,
           background: dockBackground,
           boxShadow: panelMode
             ? isDark
-              ? 'inset 0 1px 0 rgba(255,255,255,0.03), 0 6px 16px rgba(0,0,0,0.2)'
-              : 'inset 0 1px 0 rgba(0,0,0,0.04), 0 6px 16px rgba(0,0,0,0.08)'
+              ? `inset 0 1px 0 rgba(255,255,255,${0.01 + dockFillAlpha * 0.03}), 0 6px 16px rgba(0,0,0,${0.02 + dockFillAlpha * 0.1})`
+              : `inset 0 1px 0 rgba(0,0,0,${0.01 + dockFillAlpha * 0.03}), 0 6px 16px rgba(0,0,0,${0.015 + dockFillAlpha * 0.05})`
             : isDark
-              ? 'inset 0 1px 0 rgba(255,255,255,0.04), 0 14px 34px rgba(0,0,0,0.25)'
-              : 'inset 0 1px 0 rgba(0,0,0,0.08), 0 14px 34px rgba(0,0,0,0.12)',
-          border: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.08)',
+              ? `inset 0 1px 0 rgba(255,255,255,${0.01 + dockFillAlpha * 0.04}), 0 14px 34px rgba(0,0,0,${0.03 + dockFillAlpha * 0.14})`
+              : `inset 0 1px 0 rgba(0,0,0,${0.015 + dockFillAlpha * 0.04}), 0 14px 34px rgba(0,0,0,${0.015 + dockFillAlpha * 0.07})`,
+          border: isDark
+            ? `1px solid rgba(255,255,255,${0.01 + dockFillAlpha * 0.04})`
+            : `1px solid rgba(0,0,0,${0.015 + dockFillAlpha * 0.04})`,
         }}
       >
         <div className={clsx(lateral ? 'flex flex-col items-center gap-0.5' : 'flex items-center gap-0.5')}>

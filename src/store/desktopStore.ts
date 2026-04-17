@@ -2,16 +2,58 @@ import { create } from 'zustand';
 import { api } from '@/lib/api';
 import type { AppId, ColorTheme, DockPosition, Settings, ThemeMode, User, WindowState } from '@/types';
 
+const settingsStorageKey = 'win11-desktop-settings';
+
 const defaultSettings: Settings = {
   theme: 'dark',
   colorTheme: 'blue',
+  interfaceRadius: 5,
   dockPosition: 'bottom',
   autoHide: false,
   panelMode: false,
   iconSize: 34,
-  dockRadius: 30,
+  dockRadius: 0,
   dockTransparency: 92,
 };
+
+function clampSettings(raw: Partial<Settings> | null | undefined): Settings {
+  return {
+    theme: raw?.theme === 'light' ? 'light' : 'dark',
+    colorTheme: raw?.colorTheme ?? defaultSettings.colorTheme,
+    interfaceRadius: Math.min(25, Math.max(2, Number(raw?.interfaceRadius ?? defaultSettings.interfaceRadius))),
+    dockPosition: raw?.dockPosition ?? defaultSettings.dockPosition,
+    autoHide: Boolean(raw?.autoHide),
+    panelMode: Boolean(raw?.panelMode),
+    iconSize: Math.min(56, Math.max(24, Number(raw?.iconSize ?? defaultSettings.iconSize))),
+    dockRadius: Math.min(40, Math.max(0, Number(raw?.dockRadius ?? defaultSettings.dockRadius))),
+    dockTransparency: Math.min(100, Math.max(35, Number(raw?.dockTransparency ?? defaultSettings.dockTransparency))),
+  };
+}
+
+function readStoredSettings() {
+  if (typeof window === 'undefined') {
+    return defaultSettings;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(settingsStorageKey);
+    if (!raw) {
+      return defaultSettings;
+    }
+
+    return clampSettings(JSON.parse(raw) as Partial<Settings>);
+  } catch {
+    return defaultSettings;
+  }
+}
+
+function persistSettings(settings: Settings) {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  window.localStorage.setItem(settingsStorageKey, JSON.stringify(settings));
+}
 
 const appTitles: Record<AppId, string> = {
   files: 'Arquivos',
@@ -59,7 +101,7 @@ const DEFAULT_WINDOW_HEIGHT = 600;
 
 export const useDesktopStore = create<DesktopStore>((set, get) => ({
   user: null,
-  settings: defaultSettings,
+  settings: readStoredSettings(),
   windows: [],
   activeWindowId: null,
   launcherOpen: false,
@@ -75,13 +117,14 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
 
       set({
         user: userData.user,
-        settings: settingsData.settings,
+        settings: clampSettings(settingsData.settings),
         authLoading: false,
       });
+      persistSettings(clampSettings(settingsData.settings));
     } catch {
       set({
         user: null,
-        settings: defaultSettings,
+        settings: readStoredSettings(),
         authLoading: false,
         windows: [],
         activeWindowId: null,
@@ -97,16 +140,18 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
 
     set({
       user: data.user,
-      settings: settingsResponse.data.settings,
+      settings: clampSettings(settingsResponse.data.settings),
       authLoading: false,
     });
+    persistSettings(clampSettings(settingsResponse.data.settings));
   },
 
   logout: async () => {
     await api.delete('/auth/logout');
+    const cachedSettings = readStoredSettings();
     set({
       user: null,
-      settings: defaultSettings,
+      settings: cachedSettings,
       windows: [],
       activeWindowId: null,
       launcherOpen: false,
@@ -229,18 +274,10 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
     };
 
     await api.post('/settings', nextSettings);
+    persistSettings(clampSettings(nextSettings));
 
     set({
-      settings: nextSettings as {
-        theme: ThemeMode;
-        colorTheme: ColorTheme;
-        dockPosition: DockPosition;
-        autoHide: boolean;
-        panelMode: boolean;
-        iconSize: number;
-        dockRadius: number;
-        dockTransparency: number;
-      },
+      settings: clampSettings(nextSettings),
     });
   },
 }));
