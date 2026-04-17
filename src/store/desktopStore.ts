@@ -78,6 +78,7 @@ interface DesktopStore {
   openWindow: (id: AppId) => void;
   closeWindow: (id: AppId) => void;
   minimizeWindow: (id: AppId) => void;
+  toggleMaximizeWindow: (id: AppId) => void;
   focusWindow: (id: AppId) => void;
   moveWindow: (id: AppId, x: number, y: number) => void;
   resizeWindow: (id: AppId, width: number, height: number, x?: number, y?: number) => void;
@@ -98,6 +99,21 @@ function getWindowStartPosition(totalWindows: number) {
 
 const DEFAULT_WINDOW_WIDTH = 720;
 const DEFAULT_WINDOW_HEIGHT = 600;
+
+function getMaximizedWindowBounds() {
+  const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1280;
+  const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 720;
+
+  return {
+    x: 20,
+    y: 72,
+    width: Math.max(MIN_WINDOW_WIDTH, viewportWidth - 40),
+    height: Math.max(MIN_WINDOW_HEIGHT, viewportHeight - 92),
+  };
+}
+
+const MIN_WINDOW_WIDTH = 520;
+const MIN_WINDOW_HEIGHT = 320;
 
 export const useDesktopStore = create<DesktopStore>((set, get) => ({
   user: null,
@@ -197,15 +213,16 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
       return {
         windows: [
           ...state.windows,
-          {
-            id,
-            title: appTitles[id],
-            minimized: false,
-            zIndex: nextZ,
-            x: startPosition.x,
-            y: startPosition.y,
-            width: DEFAULT_WINDOW_WIDTH,
-            height: DEFAULT_WINDOW_HEIGHT,
+           {
+             id,
+             title: appTitles[id],
+             minimized: false,
+             maximized: false,
+             zIndex: nextZ,
+             x: startPosition.x,
+             y: startPosition.y,
+             width: DEFAULT_WINDOW_WIDTH,
+             height: DEFAULT_WINDOW_HEIGHT,
           },
         ],
         activeWindowId: id,
@@ -227,6 +244,44 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
       activeWindowId: state.activeWindowId === id ? null : state.activeWindowId,
     })),
 
+  toggleMaximizeWindow: (id) =>
+    set((state) => {
+      const nextZ = Math.max(10, ...state.windows.map((window) => window.zIndex)) + 1;
+
+      return {
+        windows: state.windows.map((window) => {
+          if (window.id !== id) {
+            return window;
+          }
+
+          if (window.maximized && window.restoreBounds) {
+            return {
+              ...window,
+              ...window.restoreBounds,
+              maximized: false,
+              restoreBounds: undefined,
+              zIndex: nextZ,
+            };
+          }
+
+          return {
+            ...window,
+            ...getMaximizedWindowBounds(),
+            maximized: true,
+            minimized: false,
+            restoreBounds: {
+              x: window.x,
+              y: window.y,
+              width: window.width,
+              height: window.height,
+            },
+            zIndex: nextZ,
+          };
+        }),
+        activeWindowId: id,
+      };
+    }),
+
   focusWindow: (id) =>
     set((state) => {
       const nextZ = Math.max(10, ...state.windows.map((window) => window.zIndex)) + 1;
@@ -241,7 +296,7 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
   moveWindow: (id, x, y) =>
     set((state) => ({
       windows: state.windows.map((window) =>
-        window.id === id
+        window.id === id && !window.maximized
           ? {
               ...window,
               x,
@@ -254,7 +309,7 @@ export const useDesktopStore = create<DesktopStore>((set, get) => ({
   resizeWindow: (id, width, height, x, y) =>
     set((state) => ({
       windows: state.windows.map((window) =>
-        window.id === id
+        window.id === id && !window.maximized
           ? {
               ...window,
               width,

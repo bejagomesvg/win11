@@ -88,14 +88,12 @@ export function Dock() {
 
   const topAlpha = Math.max(0.02, dockFillAlpha - (panelMode ? 0.08 : 0.05));
   const bottomAlpha = Math.max(0.05, dockFillAlpha);
-  const dockBackground = isDark
-    ? `linear-gradient(180deg, rgba(15, 23, 42, ${topAlpha}), rgba(2, 6, 23, ${bottomAlpha}))`
-    : `linear-gradient(180deg, rgba(255, 255, 255, ${topAlpha}), rgba(226, 232, 240, ${bottomAlpha}))`;
+  const dockBackground = `linear-gradient(180deg, rgb(var(--card) / ${topAlpha + 0.18}), rgb(var(--background) / ${bottomAlpha + 0.12}))`;
 
   return (
     <div
       className={clsx(
-        'absolute z-[1360]',
+        'absolute z-[2000]',
         panelMode
           ? settings.autoHide
             ? panelWrapperClasses
@@ -123,15 +121,9 @@ export function Dock() {
           borderRadius: `${panelMode ? Math.max(0, settings.dockRadius - 24) : Math.max(0, settings.dockRadius)}px`,
           background: dockBackground,
           boxShadow: panelMode
-            ? isDark
-              ? `inset 0 1px 0 rgba(255,255,255,${0.01 + dockFillAlpha * 0.03}), 0 6px 16px rgba(0,0,0,${0.02 + dockFillAlpha * 0.1})`
-              : `inset 0 1px 0 rgba(0,0,0,${0.01 + dockFillAlpha * 0.03}), 0 6px 16px rgba(0,0,0,${0.015 + dockFillAlpha * 0.05})`
-            : isDark
-              ? `inset 0 1px 0 rgba(255,255,255,${0.01 + dockFillAlpha * 0.04}), 0 14px 34px rgba(0,0,0,${0.03 + dockFillAlpha * 0.14})`
-              : `inset 0 1px 0 rgba(0,0,0,${0.015 + dockFillAlpha * 0.04}), 0 14px 34px rgba(0,0,0,${0.015 + dockFillAlpha * 0.07})`,
-          border: isDark
-            ? `1px solid rgba(255,255,255,${0.01 + dockFillAlpha * 0.04})`
-            : `1px solid rgba(0,0,0,${0.015 + dockFillAlpha * 0.04})`,
+            ? `inset 0 1px 0 rgb(var(--foreground) / 0.03), 0 6px 16px rgb(0 0 0 / ${0.02 + dockFillAlpha * 0.1})`
+            : `inset 0 1px 0 rgb(var(--foreground) / 0.04), 0 14px 34px rgb(0 0 0 / ${0.03 + dockFillAlpha * 0.12})`,
+          border: '1px solid rgb(var(--border) / 0.7)',
         }}
       >
         <div className={clsx(lateral ? 'flex flex-col items-center gap-0.5' : 'flex items-center gap-0.5')}>
@@ -147,7 +139,7 @@ export function Dock() {
                   <div
                     className={clsx(
                       lateral ? 'my-1 h-px w-4' : 'mx-1 h-4 w-px',
-                      isDark ? 'bg-white/12' : 'bg-slate-400/40'
+                      'bg-border/70'
                     )}
                   />
                 ) : null}
@@ -159,17 +151,17 @@ export function Dock() {
                     onClick={() => toggleLauncher()}
                     className={clsx(
                       'group relative flex items-center justify-center transition duration-200',
-                      isDark ? 'text-white/95' : 'text-slate-700',
+                      'text-foreground',
                       panelMode
                         ? clsx(
                           'rounded-lg bg-transparent',
-                          isDark ? 'hover:bg-white/[0.08]' : 'hover:bg-slate-900/[0.08]'
+                          'hover:bg-accent/70'
                         )
                         : clsx(
                           'rounded-xl bg-transparent hover:-translate-y-0.5',
-                          isDark ? 'hover:bg-white/[0.09]' : 'hover:bg-slate-900/[0.09]'
+                          'hover:bg-accent/70'
                         ),
-                      launcherOpen ? (isDark ? 'bg-white/[0.12]' : 'bg-slate-900/[0.12]') : '',
+                      launcherOpen ? 'bg-accent text-accent-foreground' : '',
                     )}
                     style={{ width: `${effectiveButtonSize}px`, height: `${effectiveButtonSize}px` }}
                   >
@@ -201,15 +193,15 @@ export function Dock() {
                     }}
                     className={clsx(
                       'group relative flex items-center justify-center transition duration-200',
-                      isDark ? 'text-white' : 'text-slate-700',
+                      'text-foreground',
                       panelMode
                         ? clsx(
                           'rounded-lg bg-transparent',
-                          isDark ? 'hover:bg-white/[0.08] hover:text-white' : 'hover:bg-slate-900/[0.08] hover:text-slate-900'
+                          'hover:bg-accent/70 hover:text-accent-foreground'
                         )
                         : clsx(
                           'rounded-xl bg-transparent hover:-translate-y-0.5',
-                          isDark ? 'hover:bg-white/[0.09] hover:text-white' : 'hover:bg-slate-900/[0.09] hover:text-slate-900'
+                          'hover:bg-accent/70 hover:text-accent-foreground'
                         ),
                     )}
                     style={{ width: `${effectiveButtonSize}px`, height: `${effectiveButtonSize}px` }}

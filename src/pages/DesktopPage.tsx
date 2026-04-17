@@ -52,8 +52,8 @@ export function DesktopPage() {
       className={cn('relative min-h-screen overflow-hidden transition-colors duration-300', isDark ? 'text-white' : 'text-slate-900')}
       style={{
         background: isDark
-          ? 'radial-gradient(circle at top, rgba(var(--color-primary), 0.18), transparent 24%), linear-gradient(180deg, #111827 0%, #0f172a 65%, #020617 100%)'
-          : 'radial-gradient(circle at 20% 10%, rgb(var(--color-primary) / 0.18), transparent 24%), radial-gradient(circle at 82% 12%, rgb(var(--color-glow) / 0.22), transparent 20%), linear-gradient(180deg, #f8fbff 0%, #edf5ff 46%, #dbeafe 100%)',
+          ? 'radial-gradient(circle at 18% 0%, rgb(var(--color-primary) / 0.08), transparent 22%), linear-gradient(180deg, #09090b 0%, #111827 100%)'
+          : 'radial-gradient(circle at 18% 0%, rgb(var(--color-primary) / 0.06), transparent 22%), linear-gradient(180deg, #fafafa 0%, #f4f4f5 52%, #e4e4e7 100%)',
       }}
     >
       <div
@@ -87,20 +87,20 @@ export function DesktopPage() {
               data-launcher-panel="true"
               className={cn(
                 'radius-panel pointer-events-auto w-full max-w-2xl border p-2 shadow-panel backdrop-blur-2xl',
-                isDark ? 'border-white/15 bg-black/25 text-white shadow-black/40' : 'border-slate-200/60 bg-white/75 text-slate-900 shadow-slate-200/50',
+                'border-border/70 bg-card/80 text-card-foreground shadow-black/10',
               )}
             >
               <CardContent className="p-6">
                 <Badge
                   className={cn(
                     'border-0 bg-transparent px-0 py-0 text-xs uppercase tracking-[0.34em]',
-                    isDark ? 'text-sky-200' : 'text-primary',
+                    'text-muted-foreground',
                   )}
                 >
                   Desktop Ready
                 </Badge>
                 <h1 className="mt-3 font-display text-4xl font-bold tracking-tight">Bem-vindo, {user?.username ?? 'guest'}</h1>
-                <p className={cn('mt-3 max-w-xl text-sm', isDark ? 'text-slate-200/85' : 'text-slate-600')}>
+                <p className="mt-3 max-w-xl text-sm text-muted-foreground">
                   Seu desktop web ja esta carregado. Abra um app pela dock ou use os atalhos abaixo para iniciar a experiencia.
                 </p>
 
@@ -122,7 +122,7 @@ export function DesktopPage() {
                         tabIndex={0}
                         className={cn(
                           'radius-card relative border p-0 text-left transition hover:-translate-y-1',
-                          isDark ? 'border-white/10 bg-white/10 hover:bg-white/15' : 'border-slate-200 bg-white/60 hover:bg-white/85 hover:shadow-lg',
+                          'border-border/70 bg-background/60 hover:bg-accent/70',
                         )}
                       >
                         <CardContent className="p-5">
@@ -137,7 +137,7 @@ export function DesktopPage() {
                             size="icon"
                             className={cn(
                               'absolute right-4 top-4 h-8 w-8 rounded-full border',
-                              pinned ? 'border-primary/35 bg-primary/10 text-primary hover:bg-primary/15' : 'border-white/10 bg-white/5 text-slate-300 hover:bg-white/10',
+                              pinned ? 'border-primary/35 bg-primary/10 text-primary hover:bg-primary/15' : 'border-border/70 bg-background/60 text-muted-foreground hover:bg-accent/70',
                             )}
                           >
                             {pinned ? <Pin className="h-3.5 w-3.5" /> : <PinOff className="h-3.5 w-3.5" />}
@@ -145,7 +145,7 @@ export function DesktopPage() {
 
                           <Icon className="h-8 w-8" style={{ color: 'rgb(var(--color-glow))' }} />
                           <p className="mt-4 font-display text-xl font-semibold">{title}</p>
-                          <p className={cn('mt-2 text-sm', isDark ? 'text-slate-300' : 'text-slate-500')}>{description}</p>
+                          <p className="mt-2 text-sm text-muted-foreground">{description}</p>
                         </CardContent>
                       </Card>
                     );

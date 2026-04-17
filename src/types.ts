@@ -34,9 +34,16 @@ export interface WindowState {
   id: AppId;
   title: string;
   minimized: boolean;
+  maximized: boolean;
   zIndex: number;
   x: number;
   y: number;
   width: number;
   height: number;
+  restoreBounds?: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
 }

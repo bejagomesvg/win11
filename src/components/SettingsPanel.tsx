@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react';
-import { Check } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Check, Minus, Plus } from 'lucide-react';
 import { useDesktopStore } from '@/store/desktopStore';
 import type { ColorTheme, DockPosition, ThemeMode } from '@/types';
 import { cn } from '@/lib/utils';
@@ -98,97 +99,187 @@ function SettingSlider({
   );
 }
 
+function SettingCounter({
+  title,
+  description,
+  value,
+  min,
+  max,
+  step,
+  onValueChange,
+}: {
+  title: string;
+  description: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  onValueChange: (value: number) => void;
+}) {
+  const decrease = () => onValueChange(Math.max(min, value - step));
+  const increase = () => onValueChange(Math.min(max, value + step));
+
+  return (
+    <div className="radius-card border border-border/70 bg-background/50 px-4 py-3">
+      <div className="space-y-1">
+        <p className="text-sm font-semibold text-foreground">{title}</p>
+        <p className="text-xs text-muted-foreground">{description}</p>
+      </div>
+      <div className="mt-4 flex items-center justify-between gap-3">
+        <button
+          type="button"
+          onClick={decrease}
+          disabled={value <= min}
+          className="radius-control flex h-9 w-9 items-center justify-center border border-border/70 bg-background/70 text-foreground transition hover:bg-accent/70 disabled:pointer-events-none disabled:opacity-40"
+        >
+          <Minus className="h-4 w-4" />
+        </button>
+        <div className="min-w-16 text-center">
+          <div className="text-xl font-semibold text-foreground">{value}</div>
+          <div className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground">px</div>
+        </div>
+        <button
+          type="button"
+          onClick={increase}
+          disabled={value >= max}
+          className="radius-control flex h-9 w-9 items-center justify-center border border-border/70 bg-background/70 text-foreground transition hover:bg-accent/70 disabled:pointer-events-none disabled:opacity-40"
+        >
+          <Plus className="h-4 w-4" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function SettingsPanel() {
   const settings = useDesktopStore((state) => state.settings);
   const updateSettings = useDesktopStore((state) => state.updateSettings);
+  const themesLayoutRef = useRef<HTMLDivElement | null>(null);
+  const [themesWideLayout, setThemesWideLayout] = useState(false);
+  const [themeSideCardsWideLayout, setThemeSideCardsWideLayout] = useState(false);
+
+  useEffect(() => {
+    const element = themesLayoutRef.current;
+    if (!element || typeof ResizeObserver === 'undefined') {
+      return;
+    }
+
+    const observer = new ResizeObserver(([entry]) => {
+      const width = entry.contentRect.width;
+      setThemesWideLayout(width >= 980);
+      setThemeSideCardsWideLayout(width >= 720);
+    });
+
+    observer.observe(element);
+
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <div className="space-y-6 pb-10">
       <SettingSection title="Themes">
-        <div className="grid gap-3 md:grid-cols-2">
-          {themeOptions.map((theme) => {
-            const selected = theme === settings.theme;
+        <div
+          ref={themesLayoutRef}
+          className={cn(
+            'grid gap-3',
+            themesWideLayout && 'grid-cols-[1.15fr_0.95fr]',
+          )}
+        >
+          <div className="radius-card min-w-0 border border-border/70 bg-background/50 p-3">
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(140px,1fr))] gap-3">
+              {themeOptions.map((theme) => {
+                const selected = theme === settings.theme;
 
-            return (
-              <button
-                key={theme}
-                type="button"
-                onClick={() => void updateSettings({ theme })}
-                className={cn(
-                  'radius-card border p-3 text-left transition hover:-translate-y-0.5',
-                  selected
-                    ? 'border-primary/70 bg-primary/10 shadow-[0_0_0_1px_rgba(var(--color-primary),0.22)]'
-                    : 'border-border/70 bg-background/50 hover:bg-accent/70',
-                )}
-              >
-                <div
-                  className={cn(
-                    'radius-block relative h-24 overflow-hidden border border-white/10',
-                    theme === 'light'
-                      ? 'bg-[linear-gradient(180deg,#8ec5ff,#2f8fff)]'
-                      : 'bg-[linear-gradient(180deg,#77bbff,#1b7df2)]',
-                  )}
-                >
-                  <div
+                return (
+                  <button
+                    key={theme}
+                    type="button"
+                    onClick={() => void updateSettings({ theme })}
                     className={cn(
-                      'radius-control absolute left-6 top-7 h-10 w-14 shadow-lg',
-                      theme === 'light' ? 'bg-white' : 'bg-slate-900',
+                      'radius-card relative min-w-0 border p-3 text-left transition hover:-translate-y-0.5',
+                      selected
+                        ? 'border-primary/70 bg-primary/10 shadow-[0_0_0_1px_rgba(var(--color-primary),0.22)]'
+                        : 'border-border/70 bg-background/50 hover:bg-accent/70',
                     )}
-                  />
-                  <div className="radius-control absolute left-11 top-3 h-10 w-16 bg-black/45" />
-                </div>
-                <div className="mt-3 flex items-center justify-between">
-                  <p className="text-sm font-semibold capitalize text-foreground">{theme}</p>
-                  {selected ? <Check className="h-4 w-4 text-primary" /> : null}
-                </div>
-              </button>
-            );
-          })}
-        </div>
+                  >
+                    {selected ? <Check className="absolute right-3 top-3 h-6 w-6 text-primary" /> : null}
+                    <div
+                      className={cn(
+                        'radius-block relative h-24 overflow-hidden border border-transparent bg-transparent',
+                      )}
+                    >
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="relative h-14 w-20">
+                          <div
+                            className={cn(
+                              'radius-control absolute bottom-0 left-0 h-10 w-14 shadow-lg',
+                              theme === 'light' ? 'bg-white' : 'bg-slate-900',
+                            )}
+                          />
+                          <div className="radius-control absolute right-0 top-0 h-10 w-16 bg-black/45" />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-3 flex items-center justify-center">
+                      <p className="text-center text-sm font-semibold capitalize text-foreground">{theme}</p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
-        <div className="radius-card border border-border/70 bg-background/50 px-4 py-3">
-          <p className="text-sm font-semibold text-foreground">Color</p>
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            {colorThemeOptions.map((option) => {
-              const selected = settings.colorTheme === option.value;
-              return (
-                <button
-                  key={option.value}
-                  type="button"
-                  aria-label={option.label}
-                  title={option.label}
-                  onClick={() => void updateSettings({ colorTheme: option.value })}
-                  className={cn(
-                    'relative flex h-8 w-8 items-center justify-center rounded-full transition hover:scale-105',
-                    selected && 'shadow-[0_0_0_2px_var(--swatch-ring),0_0_8px_var(--swatch-ring)]',
-                  )}
-                  style={
-                    selected
-                      ? ({
-                          ['--swatch-ring' as string]: option.swatch,
-                        } as CSSProperties)
-                      : undefined
-                  }
-                >
-                  <span
-                    className={cn('block h-5 w-5 rounded-full', selected && 'border border-white/80')}
-                    style={{ backgroundColor: option.swatch }}
-                  />
-                </button>
-              );
-            })}
+          <div
+            className={cn(
+              'grid gap-3',
+              themeSideCardsWideLayout ? 'grid-cols-2' : 'grid-cols-1',
+            )}
+          >
+            <div className="radius-card border border-border/70 bg-background/50 px-4 py-3">
+              <p className="text-sm font-semibold text-foreground">Color</p>
+              <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+                {colorThemeOptions.map((option) => {
+                  const selected = settings.colorTheme === option.value;
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      aria-label={option.label}
+                      title={option.label}
+                      onClick={() => void updateSettings({ colorTheme: option.value })}
+                      className={cn(
+                        'relative flex h-8 w-8 items-center justify-center rounded-full transition hover:scale-105',
+                        selected && 'shadow-[0_0_0_2px_var(--swatch-ring),0_0_8px_var(--swatch-ring)]',
+                      )}
+                      style={
+                        selected
+                          ? ({
+                              ['--swatch-ring' as string]: option.swatch,
+                            } as CSSProperties)
+                          : undefined
+                      }
+                    >
+                      <span
+                        className={cn('block h-5 w-5 rounded-full', selected && 'border border-white/80')}
+                        style={{ backgroundColor: option.swatch }}
+                      />
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <SettingCounter
+              title="Interface radius"
+              description="Controla o arredondamento geral da interface."
+              value={settings.interfaceRadius}
+              min={2}
+              max={25}
+              step={2}
+              onValueChange={(value) => void updateSettings({ interfaceRadius: value })}
+            />
           </div>
         </div>
-
-        <SettingSlider
-          title="Interface corner radius"
-          description="Controla o arredondamento geral dos componentes da interface."
-          value={settings.interfaceRadius}
-          min={2}
-          max={25}
-          step={2}
-          onValueChange={(value) => void updateSettings({ interfaceRadius: value })}
-        />
       </SettingSection>
 
       <SettingSection title="Dock">

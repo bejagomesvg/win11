@@ -54,21 +54,21 @@ export function renderWindowContent(appId: AppId) {
 
   if (appId === 'terminal') {
     return (
-      <Card className="rounded-2xl border-emerald-500/20 bg-slate-950 text-emerald-300">
+      <Card className="rounded-2xl border-border/70 bg-background/60 text-foreground">
         <CardContent className="space-y-2 p-4 font-mono text-sm">
-          <p>guest@web-desktop:~$ ls</p>
+          <p className="text-primary">guest@web-desktop:~$ ls</p>
           <p>Documentos Downloads Projetos Imagens Videos</p>
-          <p className="mt-3">guest@web-desktop:~$ echo "Ubuntu vibes inside React"</p>
+          <p className="mt-3 text-primary">guest@web-desktop:~$ echo "Ubuntu vibes inside React"</p>
           <p>Ubuntu vibes inside React</p>
-          <p className="mt-3">guest@web-desktop:~$ pwd</p>
+          <p className="mt-3 text-primary">guest@web-desktop:~$ pwd</p>
           <p>/home/guest</p>
-          <p className="mt-3">guest@web-desktop:~$ whoami</p>
+          <p className="mt-3 text-primary">guest@web-desktop:~$ whoami</p>
           <p>guest</p>
-          <p className="mt-3">guest@web-desktop:~$ uname -a</p>
+          <p className="mt-3 text-primary">guest@web-desktop:~$ uname -a</p>
           <p>Linux web-desktop 5.15.0 #1 SMP x86_64 GNU/Linux</p>
-          <p className="mt-3">guest@web-desktop:~$ date</p>
+          <p className="mt-3 text-primary">guest@web-desktop:~$ date</p>
           <p>{new Date().toLocaleString()}</p>
-          <p className="mt-3">guest@web-desktop:~$ _</p>
+          <p className="mt-3 text-primary">guest@web-desktop:~$ _</p>
         </CardContent>
       </Card>
     );

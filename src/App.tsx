@@ -108,29 +108,63 @@ const colorThemeVars: Record<
 
 const baseThemeTokens = {
   dark: {
-    background: '9 17 31',
-    foreground: '248 250 252',
-    card: '16 24 40',
-    cardForeground: '248 250 252',
-    popover: '12 20 34',
-    popoverForeground: '248 250 252',
-    primaryForeground: '248 250 252',
-    secondaryForeground: '248 250 252',
-    mutedForeground: '148 163 184',
-    accentForeground: '248 250 252',
+    background: '9 9 11',
+    foreground: '250 250 250',
+    card: '24 24 27',
+    cardForeground: '250 250 250',
+    popover: '24 24 27',
+    popoverForeground: '250 250 250',
+    primary: '250 250 250',
+    primaryForeground: '24 24 27',
+    secondary: '39 39 42',
+    secondaryForeground: '250 250 250',
+    muted: '39 39 42',
+    mutedForeground: '161 161 170',
+    accent: '39 39 42',
+    accentForeground: '250 250 250',
+    border: '63 63 70',
+    input: '63 63 70',
+    ring: '212 212 216',
   },
   light: {
-    background: '248 250 252',
-    foreground: '15 23 42',
-    card: '255 255 255',
-    cardForeground: '15 23 42',
+    background: '244 244 245',
+    foreground: '9 9 11',
+    card: '250 250 250',
+    cardForeground: '9 9 11',
     popover: '255 255 255',
-    popoverForeground: '15 23 42',
-    primaryForeground: '248 250 252',
-    secondaryForeground: '30 41 59',
-    mutedForeground: '71 85 105',
-    accentForeground: '30 41 59',
+    popoverForeground: '9 9 11',
+    primary: '24 24 27',
+    primaryForeground: '250 250 250',
+    secondary: '239 239 240',
+    secondaryForeground: '24 24 27',
+    muted: '239 239 240',
+    mutedForeground: '113 113 122',
+    accent: '239 239 240',
+    accentForeground: '24 24 27',
+    border: '212 212 216',
+    input: '212 212 216',
+    ring: '161 161 170',
   },
+};
+
+const loginThemeTokens: ThemeTokens = {
+  background: '9 20 44',
+  foreground: '248 250 252',
+  card: '15 23 42',
+  cardForeground: '248 250 252',
+  popover: '15 23 42',
+  popoverForeground: '248 250 252',
+  primary: '96 165 250',
+  primaryForeground: '248 250 252',
+  secondary: '30 41 59',
+  secondaryForeground: '248 250 252',
+  muted: '30 41 59',
+  mutedForeground: '203 213 225',
+  accent: '37 99 235',
+  accentForeground: '248 250 252',
+  border: '71 85 105',
+  input: '96 165 250',
+  ring: '96 165 250',
 };
 
 export default function App() {
@@ -144,17 +178,51 @@ export default function App() {
   }, [bootstrap]);
 
   useEffect(() => {
+    if (!user) {
+      document.documentElement.classList.remove('dark');
+      return;
+    }
+
     document.documentElement.classList.toggle('dark', settings.theme === 'dark');
-  }, [settings.theme]);
+  }, [settings.theme, user]);
 
   useEffect(() => {
+    if (!user) {
+      document.documentElement.removeAttribute('data-color-theme');
+      document.documentElement.removeAttribute('data-theme');
+      document.documentElement.style.colorScheme = 'dark';
+      document.documentElement.style.setProperty('--color-primary', '96 165 250');
+      document.documentElement.style.setProperty('--color-glow', '191 219 254');
+      document.documentElement.style.setProperty('--color-soft', '30 64 175');
+      document.documentElement.style.setProperty('--background', loginThemeTokens.background);
+      document.documentElement.style.setProperty('--foreground', loginThemeTokens.foreground);
+      document.documentElement.style.setProperty('--card', loginThemeTokens.card);
+      document.documentElement.style.setProperty('--card-foreground', loginThemeTokens.cardForeground);
+      document.documentElement.style.setProperty('--popover', loginThemeTokens.popover);
+      document.documentElement.style.setProperty('--popover-foreground', loginThemeTokens.popoverForeground);
+      document.documentElement.style.setProperty('--primary', loginThemeTokens.primary);
+      document.documentElement.style.setProperty('--primary-foreground', loginThemeTokens.primaryForeground);
+      document.documentElement.style.setProperty('--secondary', loginThemeTokens.secondary);
+      document.documentElement.style.setProperty('--secondary-foreground', loginThemeTokens.secondaryForeground);
+      document.documentElement.style.setProperty('--muted', loginThemeTokens.muted);
+      document.documentElement.style.setProperty('--muted-foreground', loginThemeTokens.mutedForeground);
+      document.documentElement.style.setProperty('--accent', loginThemeTokens.accent);
+      document.documentElement.style.setProperty('--accent-foreground', loginThemeTokens.accentForeground);
+      document.documentElement.style.setProperty('--border', loginThemeTokens.border);
+      document.documentElement.style.setProperty('--input', loginThemeTokens.input);
+      document.documentElement.style.setProperty('--ring', loginThemeTokens.ring);
+      document.documentElement.style.setProperty('--radius', '12px');
+      return;
+    }
+
     const palette = colorThemeVars[settings.colorTheme] || colorThemeVars.blue;
     const activeTokens = settings.theme === 'dark'
-      ? { ...baseThemeTokens.dark, ...palette.dark }
-      : { ...baseThemeTokens.light, ...palette.light };
+      ? baseThemeTokens.dark
+      : baseThemeTokens.light;
 
     document.documentElement.dataset.colorTheme = settings.colorTheme;
     document.documentElement.dataset.theme = settings.theme;
+    document.documentElement.style.colorScheme = settings.theme;
     document.documentElement.style.setProperty('--color-primary', palette.primary);
     document.documentElement.style.setProperty('--color-glow', palette.glow);
     document.documentElement.style.setProperty('--color-soft', palette.soft);
@@ -164,7 +232,7 @@ export default function App() {
     document.documentElement.style.setProperty('--card-foreground', activeTokens.cardForeground);
     document.documentElement.style.setProperty('--popover', activeTokens.popover);
     document.documentElement.style.setProperty('--popover-foreground', activeTokens.popoverForeground);
-    document.documentElement.style.setProperty('--primary', activeTokens.primary);
+    document.documentElement.style.setProperty('--primary', palette.primary);
     document.documentElement.style.setProperty('--primary-foreground', activeTokens.primaryForeground);
     document.documentElement.style.setProperty('--secondary', activeTokens.secondary);
     document.documentElement.style.setProperty('--secondary-foreground', activeTokens.secondaryForeground);
@@ -174,9 +242,9 @@ export default function App() {
     document.documentElement.style.setProperty('--accent-foreground', activeTokens.accentForeground);
     document.documentElement.style.setProperty('--border', activeTokens.border);
     document.documentElement.style.setProperty('--input', activeTokens.input);
-    document.documentElement.style.setProperty('--ring', activeTokens.ring);
+    document.documentElement.style.setProperty('--ring', palette.glow);
     document.documentElement.style.setProperty('--radius', `${settings.interfaceRadius}px`);
-  }, [settings.colorTheme, settings.interfaceRadius, settings.theme]);
+  }, [settings.colorTheme, settings.interfaceRadius, settings.theme, user]);
 
   if (authLoading) {
     return <LoadingScreen />;
