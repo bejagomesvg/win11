@@ -30,7 +30,9 @@ export function DesktopWindow({ window, active, dimmed }: DesktopWindowProps) {
   const focusWindow = useDesktopStore((state) => state.focusWindow);
   const moveWindow = useDesktopStore((state) => state.moveWindow);
   const resizeWindow = useDesktopStore((state) => state.resizeWindow);
+  const settings = useDesktopStore((state) => state.settings);
   const dragOffsetRef = useRef({ x: 0, y: 0 });
+
 
   if (window.minimized) {
     return null;
@@ -159,62 +161,99 @@ export function DesktopWindow({ window, active, dimmed }: DesktopWindowProps) {
         left: `${window.x}px`,
         width: `${window.width}px`,
         height: `${window.height}px`,
+        backgroundColor: active
+          ? settings.theme === 'dark'
+            ? 'rgba(2, 6, 23, 0.82)'
+            : 'rgba(240, 249, 255, 0.85)'
+          : settings.theme === 'dark'
+            ? 'rgba(15, 23, 42, 0.55)'
+            : 'rgba(219, 234, 254, 0.6)',
+        boxShadow: active
+          ? settings.theme === 'dark'
+            ? '0 40px 120px rgba(2, 6, 23, 0.65)'
+            : '0 40px 120px rgba(30, 58, 138, 0.35)'
+          : 'none',
+        display: 'flex',
+        flexDirection: 'column',
       }}
       onMouseDown={() => focusWindow(window.id)}
       className={clsx(
-        'absolute animate-popIn overflow-hidden rounded-[28px] border border-white/10 shadow-panel backdrop-blur-2xl transition',
-        active
-          ? 'bg-slate-950/82 shadow-[0_40px_120px_rgba(2,6,23,0.65)]'
-          : 'bg-slate-900/55',
+        'absolute animate-popIn rounded-[28px] border backdrop-blur-2xl transition overflow-hidden',
+        settings.theme === 'dark' ? 'border-white/10' : 'border-slate-300/30',
         dimmed ? 'scale-[0.985] blur-[1px] opacity-25 saturate-50' : '',
       )}
     >
       <div
         onMouseDown={handleDragStart}
-        className="flex cursor-grab items-center justify-between border-b border-white/10 bg-black/20 px-5 py-4 active:cursor-grabbing"
+        className={clsx(
+          'flex cursor-grab items-center justify-between border-b px-5 py-4 active:cursor-grabbing flex-shrink-0',
+          settings.theme === 'dark'
+            ? 'border-white/10 bg-black/20'
+            : 'border-slate-300/30 bg-white/20'
+        )}
       >
         <div>
           <div className="flex items-center gap-2">
-            <GripHorizontal className="h-4 w-4 text-slate-400" />
-            <h2 className="font-display text-lg font-semibold text-white">{window.title}</h2>
+            <GripHorizontal className={clsx(
+              'h-4 w-4',
+              settings.theme === 'dark' ? 'text-slate-400' : 'text-slate-500'
+            )} />
+            <h2 className={clsx(
+              'font-display text-lg font-semibold',
+              settings.theme === 'dark' ? 'text-white' : 'text-slate-900'
+            )}>{window.title}</h2>
           </div>
-          <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Web desktop app</p>
+          <p className={clsx(
+            'text-xs uppercase tracking-[0.24em]',
+            settings.theme === 'dark' ? 'text-slate-400' : 'text-slate-600'
+          )}>Web desktop app</p>
         </div>
         <div className="flex items-center gap-2" onMouseDown={(event) => event.stopPropagation()}>
           <button
             type="button"
             onClick={() => minimizeWindow(window.id)}
-            className="rounded-full border border-white/10 bg-white/5 p-2 text-slate-200 transition hover:bg-white/10"
+            className={clsx(
+              'rounded-full border p-2 transition',
+              settings.theme === 'dark'
+                ? 'border-white/10 bg-white/5 text-slate-200 hover:bg-white/10'
+                : 'border-slate-300/50 bg-slate-100/40 text-slate-700 hover:bg-slate-100/60'
+            )}
           >
             <Minus className="h-4 w-4" />
           </button>
           <button
             type="button"
             onClick={() => closeWindow(window.id)}
-            className="rounded-full border p-2 text-white transition"
+            className="rounded-full border p-2 transition"
             style={{
               borderColor: 'rgba(var(--color-primary), 0.25)',
               backgroundColor: 'rgba(var(--color-primary), 0.18)',
+              color: settings.theme === 'dark' ? 'white' : 'rgba(var(--color-primary), 1)',
             }}
           >
             <X className="h-4 w-4" />
           </button>
         </div>
       </div>
-      <div className="h-[calc(100%-77px)] overflow-auto p-5 text-slate-100">
+      <div 
+        className={clsx(
+          'flex-1 overflow-y-scroll p-5 pr-3',
+          settings.theme === 'dark' ? 'text-slate-100' : 'text-slate-900'
+        )}
+      >
         {renderWindowContent(window.id)}
       </div>
       <button
         type="button"
         aria-label="Redimensionar largura"
         onMouseDown={handleResizeRightStart}
-        className="absolute right-0 top-6 h-[calc(100%-32px)] w-2 cursor-e-resize bg-transparent"
+        className="absolute right-0 top-16 h-[calc(100%-68px)] w-2 cursor-e-resize bg-transparent"
       />
       <button
         type="button"
         aria-label="Redimensionar altura"
         onMouseDown={handleResizeBottomStart}
-        className="absolute bottom-0 left-6 h-2 w-[calc(100%-32px)] cursor-s-resize bg-transparent"
+        className="absolute bottom-0 left-20 h-2 w-[calc(100%-52px)] cursor-s-resize bg-transparent"
       />
       <button
         type="button"

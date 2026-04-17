@@ -34,6 +34,7 @@ export function Dock() {
   const launcherOpen = useDesktopStore((state) => state.launcherOpen);
   const toggleLauncher = useDesktopStore((state) => state.toggleLauncher);
   const lateral = settings.dockPosition === 'left' || settings.dockPosition === 'right';
+  const isDark = settings.theme === 'dark';
   const visibleApps = apps.filter(
     ({ id }) => pinnedApps.includes(id) || windows.some((window) => window.id === id),
   );
@@ -84,6 +85,10 @@ export function Dock() {
           ? 'translate-y-[calc(-100%+6px)] opacity-95 hover:translate-y-0'
           : 'translate-y-[calc(100%-6px)] opacity-95 hover:translate-y-0';
 
+  const dockBackground = isDark
+    ? `linear-gradient(180deg, rgba(34, 15, 24, ${Math.max(0.68, dockAlpha - 0.04)}), rgba(16, 10, 18, ${Math.max(0.8, dockAlpha)}))`
+    : `linear-gradient(180deg, rgba(203, 213, 225, ${Math.max(0.7, dockAlpha - 0.02)}), rgba(226, 232, 240, ${Math.max(0.85, dockAlpha)}))`;
+
   return (
     <div
       className={clsx(
@@ -111,11 +116,15 @@ export function Dock() {
         )}
         style={{
           borderRadius: `${panelMode ? Math.max(5, settings.dockRadius - 24) : Math.max(18, settings.dockRadius - 6)}px`,
-          background: `linear-gradient(180deg, rgba(34, 15, 24, ${Math.max(0.68, dockAlpha - 0.04)}), rgba(16, 10, 18, ${Math.max(0.8, dockAlpha)}))`,
+          background: dockBackground,
           boxShadow: panelMode
-            ? 'inset 0 1px 0 rgba(255,255,255,0.03), 0 6px 16px rgba(0,0,0,0.2)'
-            : 'inset 0 1px 0 rgba(255,255,255,0.04), 0 14px 34px rgba(0,0,0,0.25)',
-          border: '1px solid rgba(255,255,255,0.05)',
+            ? isDark
+              ? 'inset 0 1px 0 rgba(255,255,255,0.03), 0 6px 16px rgba(0,0,0,0.2)'
+              : 'inset 0 1px 0 rgba(0,0,0,0.04), 0 6px 16px rgba(0,0,0,0.08)'
+            : isDark
+              ? 'inset 0 1px 0 rgba(255,255,255,0.04), 0 14px 34px rgba(0,0,0,0.25)'
+              : 'inset 0 1px 0 rgba(0,0,0,0.08), 0 14px 34px rgba(0,0,0,0.12)',
+          border: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.08)',
         }}
       >
         <div className={clsx(lateral ? 'flex flex-col items-center gap-0.5' : 'flex items-center gap-0.5')}>
@@ -130,8 +139,8 @@ export function Dock() {
                 {shouldShowDivider ? (
                   <div
                     className={clsx(
-                      'bg-white/10',
-                      lateral ? 'my-1 h-px w-4 bg-white/12' : 'mx-1 h-4 w-px bg-white/12',
+                      lateral ? 'my-1 h-px w-4' : 'mx-1 h-4 w-px',
+                      isDark ? 'bg-white/12' : 'bg-slate-400/40'
                     )}
                   />
                 ) : null}
@@ -142,11 +151,18 @@ export function Dock() {
                     title="Aplicativos"
                     onClick={() => toggleLauncher()}
                     className={clsx(
-                      'group relative flex items-center justify-center text-white/95 transition duration-200',
+                      'group relative flex items-center justify-center transition duration-200',
+                      isDark ? 'text-white/95' : 'text-slate-700',
                       panelMode
-                        ? 'rounded-lg bg-transparent hover:bg-white/[0.08]'
-                        : 'rounded-xl bg-transparent hover:bg-white/[0.09] hover:-translate-y-0.5',
-                      launcherOpen ? 'bg-white/[0.12]' : '',
+                        ? clsx(
+                          'rounded-lg bg-transparent',
+                          isDark ? 'hover:bg-white/[0.08]' : 'hover:bg-slate-900/[0.08]'
+                        )
+                        : clsx(
+                          'rounded-xl bg-transparent hover:-translate-y-0.5',
+                          isDark ? 'hover:bg-white/[0.09]' : 'hover:bg-slate-900/[0.09]'
+                        ),
+                      launcherOpen ? (isDark ? 'bg-white/[0.12]' : 'bg-slate-900/[0.12]') : '',
                     )}
                     style={{ width: `${effectiveButtonSize}px`, height: `${effectiveButtonSize}px` }}
                   >
@@ -177,10 +193,17 @@ export function Dock() {
                       openWindow(item.id);
                     }}
                     className={clsx(
-                      'group relative flex items-center justify-center text-white transition duration-200',
+                      'group relative flex items-center justify-center transition duration-200',
+                      isDark ? 'text-white' : 'text-slate-700',
                       panelMode
-                        ? 'rounded-lg bg-transparent hover:bg-white/[0.08] hover:text-white'
-                        : 'rounded-xl bg-transparent hover:bg-white/[0.09] hover:text-white hover:-translate-y-0.5',
+                        ? clsx(
+                          'rounded-lg bg-transparent',
+                          isDark ? 'hover:bg-white/[0.08] hover:text-white' : 'hover:bg-slate-900/[0.08] hover:text-slate-900'
+                        )
+                        : clsx(
+                          'rounded-xl bg-transparent hover:-translate-y-0.5',
+                          isDark ? 'hover:bg-white/[0.09] hover:text-white' : 'hover:bg-slate-900/[0.09] hover:text-slate-900'
+                        ),
                     )}
                     style={{ width: `${effectiveButtonSize}px`, height: `${effectiveButtonSize}px` }}
                     title={item.label}

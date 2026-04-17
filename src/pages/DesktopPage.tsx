@@ -91,18 +91,23 @@ export function DesktopPage() {
         <section className="relative z-[1400] flex min-h-screen items-center justify-center px-4 pt-20 pointer-events-none">
           <div
             data-launcher-panel="true"
-            className="pointer-events-auto w-full max-w-2xl rounded-[32px] border border-white/15 bg-black/25 p-8 text-white shadow-panel backdrop-blur-2xl"
+            className={clsx(
+              "pointer-events-auto w-full max-w-2xl rounded-[32px] border p-8 shadow-panel backdrop-blur-2xl transition-all duration-300",
+              settings.theme === 'dark' 
+                ? "border-white/15 bg-black/25 text-white shadow-black/40" 
+                : "border-slate-200/60 bg-white/70 text-slate-900 shadow-slate-200/50"
+            )}
           >
             <p
               className="text-xs uppercase tracking-[0.34em]"
-              style={{ color: 'rgba(var(--color-glow), 0.9)' }}
+              style={{ color: settings.theme === 'dark' ? 'rgba(var(--color-glow), 0.9)' : 'rgb(var(--color-primary))' }}
             >
               Desktop Ready
             </p>
             <h1 className="mt-3 font-display text-4xl font-bold tracking-tight">
               Bem-vindo, {user?.username ?? 'guest'}
             </h1>
-            <p className="mt-3 max-w-xl text-sm text-slate-200/85">
+            <p className={clsx("mt-3 max-w-xl text-sm", settings.theme === 'dark' ? "text-slate-200/85" : "text-slate-600")}>
               Seu desktop web ja esta carregado. Abra um app pela dock ou use os atalhos abaixo
               para iniciar a experiencia.
             </p>
@@ -123,7 +128,12 @@ export function DesktopPage() {
                     }}
                     role="button"
                     tabIndex={0}
-                    className="relative rounded-3xl border border-white/10 bg-white/10 p-5 text-left transition hover:-translate-y-1 hover:bg-white/15"
+                    className={clsx(
+                      "relative rounded-3xl border p-5 text-left transition hover:-translate-y-1",
+                      settings.theme === 'dark'
+                        ? "border-white/10 bg-white/10 hover:bg-white/15"
+                        : "border-slate-200 bg-white/50 hover:bg-white/80 hover:shadow-lg"
+                    )}
                   >
                     <button
                       type="button"
@@ -156,7 +166,7 @@ export function DesktopPage() {
 
                     <Icon className="h-8 w-8" style={{ color: 'rgb(var(--color-glow))' }} />
                     <p className="mt-4 font-display text-xl font-semibold">{title}</p>
-                    <p className="mt-2 text-sm text-slate-300">{description}</p>
+                    <p className={clsx("mt-2 text-sm", settings.theme === 'dark' ? "text-slate-300" : "text-slate-500")}>{description}</p>
                   </div>
                 );
               })}

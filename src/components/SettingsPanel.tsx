@@ -72,7 +72,7 @@ export function SettingsPanel() {
   const darkMode = settings.theme === 'dark';
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-10">
       <section
         className={clsx(
           'rounded-3xl border p-5 transition-colors',

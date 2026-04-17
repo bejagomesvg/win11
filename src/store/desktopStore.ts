@@ -46,7 +46,7 @@ function getWindowStartPosition(totalWindows: number) {
   const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1280;
   const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 720;
   const baseX = Math.max(20, Math.round((viewportWidth - 720) / 2));
-  const baseY = Math.max(72, Math.round((viewportHeight - 420) / 2));
+  const baseY = Math.max(72, Math.round((viewportHeight - 600) / 2));
 
   return {
     x: baseX + totalWindows * 24,
@@ -55,7 +55,7 @@ function getWindowStartPosition(totalWindows: number) {
 }
 
 const DEFAULT_WINDOW_WIDTH = 720;
-const DEFAULT_WINDOW_HEIGHT = 420;
+const DEFAULT_WINDOW_HEIGHT = 600;
 
 export const useDesktopStore = create<DesktopStore>((set, get) => ({
   user: null,

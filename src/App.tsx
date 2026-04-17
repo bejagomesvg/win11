@@ -34,10 +34,11 @@ export default function App() {
   useEffect(() => {
     const palette = colorThemeVars[settings.colorTheme] || colorThemeVars.blue;
     document.documentElement.dataset.colorTheme = settings.colorTheme;
+    document.documentElement.dataset.theme = settings.theme;
     document.documentElement.style.setProperty('--color-primary', palette.primary);
     document.documentElement.style.setProperty('--color-glow', palette.glow);
     document.documentElement.style.setProperty('--color-soft', palette.soft);
-  }, [settings.colorTheme]);
+  }, [settings.colorTheme, settings.theme]);
 
   if (authLoading) {
     return <LoadingScreen />;
